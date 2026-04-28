@@ -719,24 +719,32 @@ function toggleStart() {
     const ex = EXERCISES[current];
     document.getElementById('timer-phase').textContent = ex.phase;
     document.getElementById('timer-hint').textContent = ex.hint;
-    // Warm up AudioContext on this user gesture so ticks are reliable
-    try { const c = getAudioCtx(); if (c.state !== 'running') c.resume(); } catch(e) {}
-
-    timer = setInterval(() => {
-      timeLeft--;
-      updateRing(timeLeft, totalTime);
-      if (timeLeft >= 1) playTick(timeLeft === 1);
-      if (timeLeft <= 0) {
-        clearInterval(timer);
-        timer = null;
-        running = false;
-        document.getElementById('timer-phase').textContent = 'Done ✓';
-        document.getElementById('timer-hint').textContent = 'Moving to next exercise…';
-        document.getElementById('btn-start').textContent = 'Start';
-        document.getElementById('exercise-card').classList.remove('running');
-        setTimeout(() => advanceExercise(), 1400);
+    // Warm up AudioContext — wait for it to be running before starting timer
+    const startTimer = () => {
+      timer = setInterval(() => {
+        timeLeft--;
+        updateRing(timeLeft, totalTime);
+        if (timeLeft >= 1) playTick(timeLeft === 1);
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          timer = null;
+          running = false;
+          document.getElementById('timer-phase').textContent = 'Done ✓';
+          document.getElementById('timer-hint').textContent = 'Moving to next exercise…';
+          document.getElementById('btn-start').textContent = 'Start';
+          document.getElementById('exercise-card').classList.remove('running');
+          setTimeout(() => advanceExercise(), 1400);
+        }
+      }, 1000);
+    };
+    try {
+      const c = getAudioCtx();
+      if (c.state === 'running') {
+        startTimer();
+      } else {
+        c.resume().then(startTimer).catch(startTimer);
       }
-    }, 1000);
+    } catch(e) { startTimer(); }
   }
 }
 
