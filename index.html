@@ -712,17 +712,20 @@ function toggleStart() {
     document.getElementById('exercise-card').classList.remove('running');
   } else {
     // Start / Resume
+    if (timer) { clearInterval(timer); timer = null; } // safety clear
     running = true;
     document.getElementById('btn-start').textContent = 'Pause';
     document.getElementById('exercise-card').classList.add('running');
     const ex = EXERCISES[current];
     document.getElementById('timer-phase').textContent = ex.phase;
     document.getElementById('timer-hint').textContent = ex.hint;
+    // Warm up AudioContext on this user gesture so ticks are reliable
+    try { const c = getAudioCtx(); if (c.state !== 'running') c.resume(); } catch(e) {}
 
     timer = setInterval(() => {
       timeLeft--;
       updateRing(timeLeft, totalTime);
-      if (timeLeft >= 1 && timeLeft <= 25) playTick(timeLeft === 1);
+      if (timeLeft >= 1) playTick(timeLeft === 1);
       if (timeLeft <= 0) {
         clearInterval(timer);
         timer = null;
@@ -775,22 +778,30 @@ let audioCtx = null;
 
 function getAudioCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
 }
 
 function playTick(isLast) {
   try {
     const ctx = getAudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(isLast ? 880 : 640, ctx.currentTime);
-    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.08);
+    const doPlay = () => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(isLast ? 880 : 640, ctx.currentTime);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.08);
+    };
+    if (ctx.state === 'running') {
+      doPlay();
+    } else {
+      ctx.resume().then(doPlay).catch(() => {});
+    }
   } catch(e) {}
 }
 
