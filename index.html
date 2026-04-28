@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eye Care Routine</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2330;
+    --border: rgba(255,255,255,0.08);
+    --accent: #7eb8d4;
+    --accent2: #a8d4b8;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --dim: #484f58;
+    --ring-bg: rgba(126,184,212,0.12);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    overflow-x: hidden;
+  }
+
+  /* subtle radial glow background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(ellipse, rgba(126,184,212,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 560px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Header ── */
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .header-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.15;
+  }
+
+  header h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  /* ── Progress strip ── */
+  .progress-strip {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 1.75rem;
+  }
+
+  .progress-dot {
+    flex: 1;
+    height: 3px;
+    border-radius: 99px;
+    background: var(--dim);
+    transition: background 0.4s;
+  }
+
+  .progress-dot.done { background: var(--accent2); }
+  .progress-dot.active { background: var(--accent); }
+
+  /* ── Exercise card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 1.25rem;
+    transition: border-color 0.3s;
+  }
+
+  .card.running { border-color: rgba(126,184,212,0.3); }
+
+  .card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .exercise-num {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .category-pill {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 3px 10px;
+    border-radius: 99px;
+    border: 1px solid rgba(126,184,212,0.35);
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .exercise-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.7rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+
+  .exercise-desc {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.65;
+    margin-bottom: 1.75rem;
+  }
+
+  /* ── Timer ring ── */
+  .timer-area {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .ring-wrap {
+    position: relative;
+    width: 88px;
+    height: 88px;
+    flex-shrink: 0;
+  }
+
+  .ring-wrap svg {
+    transform: rotate(-90deg);
+  }
+
+  #ring-track {
+    stroke: var(--ring-bg);
+  }
+
+  #ring-fill {
+    stroke: var(--accent);
+    stroke-dasharray: 251.2;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear, stroke 0.4s;
+    stroke-linecap: round;
+  }
+
+  .ring-num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timer-info { flex: 1; }
+
+  .timer-phase {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .timer-hint {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ── Visual guide (animated eye) ── */
+  .visual-guide {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin-bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 90px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Eye SVG styles ── */
+  .eye-svg {
+    width: 80px;
+    height: 40px;
+  }
+
+  /* dot that moves for various exercises */
+  #guide-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    position: absolute;
+    transition: left 0.8s ease-in-out, top 0.8s ease-in-out;
+  }
+
+  /* palming overlay */
+  .palming-visual {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+  }
+
+  .palm-hand {
+    width: 36px;
+    height: 44px;
+    border-radius: 6px 6px 10px 10px;
+    background: rgba(126,184,212,0.18);
+    border: 1px solid rgba(126,184,212,0.3);
+    animation: palmPulse 2s ease-in-out infinite;
+  }
+
+  .palm-hand:nth-child(2) { animation-delay: 0.2s; }
+
+  @keyframes palmPulse {
+    0%, 100% { opacity: 0.6; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.06); }
+  }
+
+  /* blinking eye */
+  .blink-eye {
+    animation: blinkAnim 2.5s ease-in-out infinite;
+  }
+
+  @keyframes blinkAnim {
+    0%, 35%, 100% { transform: scaleY(1); }
+    40%, 45% { transform: scaleY(0.05); }
+  }
+
+  /* figure eight path */
+  .fig8-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    position: absolute;
+    animation: fig8 4s linear infinite;
+    transform: translate(-50%, -50%);
+  }
+
+  @keyframes fig8 {
+    0%   { left: 50%; top: 50%; }
+    12%  { left: 65%; top: 30%; }
+    25%  { left: 80%; top: 50%; }
+    37%  { left: 65%; top: 70%; }
+    50%  { left: 50%; top: 50%; }
+    62%  { left: 35%; top: 30%; }
+    75%  { left: 20%; top: 50%; }
+    87%  { left: 35%; top: 70%; }
+    100% { left: 50%; top: 50%; }
+  }
+
+  /* up-down */
+  .updown-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: upDown 1.6s ease-in-out infinite;
+  }
+
+  @keyframes upDown {
+    0%, 100% { top: 20%; }
+    50% { top: 75%; }
+  }
+
+  /* squeeze */
+  .squeeze-eye {
+    animation: squeezeAnim 2.2s ease-in-out infinite;
+  }
+
+  @keyframes squeezeAnim {
+    0%, 30%, 100% { transform: scaleY(1); }
+    40%, 60% { transform: scaleY(0.03); }
+    70% { transform: scaleY(1); }
+  }
+
+  /* near-far dot */
+  .nearfar-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    animation: nearFar 2.4s ease-in-out infinite;
+  }
+
+  @keyframes nearFar {
+    0%, 100% { width: 10px; height: 10px; opacity: 1; }
+    50% { width: 22px; height: 22px; opacity: 0.5; }
+  }
+
+  /* nose focus — two lines converging */
+  .nose-lines {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nose-line {
+    width: 60px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+    transform-origin: right center;
+    animation: noseConverge 2.4s ease-in-out infinite;
+    position: absolute;
+  }
+
+  .nose-line:first-child { animation-delay: 0; }
+  .nose-line:last-child { transform: scaleX(-1); }
+
+  @keyframes noseConverge {
+    0%, 100% { transform: rotate(-20deg); opacity: 0.4; }
+    50% { transform: rotate(0deg); opacity: 1; }
+  }
+
+  /* ── Why-it-helps ── */
+  .why-box {
+    background: var(--surface2);
+    border-left: 2px solid var(--accent2);
+    border-radius: 0 10px 10px 0;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .why-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 4px;
+  }
+
+  .why-text {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  /* ── Buttons ── */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-primary {
+    flex: 1;
+    padding: 12px 20px;
+    background: var(--accent);
+    color: #0d1117;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-secondary {
+    padding: 12px 18px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .btn-secondary:hover { color: var(--text); border-color: var(--dim); }
+
+  /* ── Done screen ── */
+  #done-screen {
+    display: none;
+    text-align: center;
+    padding: 2.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+  }
+
+  .done-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid var(--accent2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    font-size: 24px;
+  }
+
+  #done-screen h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+  }
+
+  #done-screen p {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 1.75rem;
+    line-height: 1.6;
+  }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 12px;
+    color: var(--dim);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="header-eyebrow">Daily Routine</div>
+    <h1>Eye <em>Care</em></h1>
+  </header>
+
+  <div class="progress-strip" id="progress-strip"></div>
+
+  <!-- Exercise Card -->
+  <div class="card" id="exercise-card">
+    <div class="card-meta">
+      <span class="exercise-num" id="step-label">Exercise 1 of 7</span>
+      <span class="category-pill" id="category-pill">Relaxation</span>
+    </div>
+    <div class="exercise-title" id="ex-title">Palming</div>
+    <div class="exercise-desc" id="ex-desc">Rub your palms together to generate warmth, then cup them gently over your closed eyes. No pressure on the eyeballs. Let the darkness and warmth soothe your eyes.</div>
+
+    <div class="timer-area">
+      <div class="ring-wrap">
+        <svg viewBox="0 0 88 88" width="88" height="88">
+          <circle id="ring-track" cx="44" cy="44" r="40" fill="none" stroke-width="5"/>
+          <circle id="ring-fill" cx="44" cy="44" r="40" fill="none" stroke-width="5"/>
+        </svg>
+        <div class="ring-num" id="ring-num">30</div>
+      </div>
+      <div class="timer-info">
+        <div class="timer-phase" id="timer-phase">Ready</div>
+        <div class="timer-hint" id="timer-hint">Press Start when you're ready</div>
+      </div>
+    </div>
+
+    <div class="visual-guide" id="visual-guide">
+      <!-- Populated by JS -->
+    </div>
+
+    <div class="why-box">
+      <div class="why-label">Why it helps</div>
+      <div class="why-text" id="why-text">Eliminates light stimulation and applies gentle warmth, deeply relaxing the ciliary muscles and the muscles around the eyes.</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" id="btn-start" onclick="toggleStart()">Start</button>
+      <button class="btn-secondary" id="btn-skip" onclick="skipExercise()">Skip →</button>
+    </div>
+  </div>
+
+  <!-- Done Screen -->
+  <div id="done-screen">
+    <div class="done-icon">✓</div>
+    <h2>Routine complete</h2>
+    <p>Great work. Your eyes have been through a full relaxation and strengthening session. Repeat daily, especially after long screen sessions.</p>
+    <button class="btn-primary" onclick="restart()" style="max-width:200px;margin:0 auto;display:block;">Start again</button>
+  </div>
+
+  <footer>No internet required · Works offline · ~4 min routine</footer>
+</div>
+
+<script>
+const EXERCISES = [
+  {
+    title: "Palming",
+    category: "Relaxation",
+    duration: 30,
+    desc: "Rub your palms together to generate warmth, then cup them gently over your closed eyes. No pressure on the eyeballs. Let the darkness and warmth soothe your eyes.",
+    phase: "Cover your eyes",
+    hint: "Breathe slowly and deeply",
+    why: "Eliminates light stimulation and applies gentle warmth, deeply relaxing the ciliary muscles and the muscles around the eyes.",
+    visual: "palming"
+  },
+  {
+    title: "Blinking",
+    category: "Lubrication",
+    duration: 20,
+    desc: "Blink rapidly and deliberately — about once per second. Most people blink far less while staring at screens, causing dryness and fatigue.",
+    phase: "Blink steadily",
+    hint: "Once every second, fully and gently",
+    why: "Replenishes the tear film that lubricates your cornea, reducing dryness and irritation from reduced blinking during screen use.",
+    visual: "blinking"
+  },
+  {
+    title: "Near-far focus",
+    category: "Focus",
+    duration: 30,
+    desc: "Hold a finger 6 inches from your nose. Focus on it for 3 seconds, then shift focus to something 20 feet away for 3 seconds. Alternate back and forth.",
+    phase: "Shift focus",
+    hint: "Near → far → near → far",
+    why: "Exercises the ciliary muscle, which controls lens shape for focusing. Keeping it only at near distances (screen work) causes it to fatigue.",
+    visual: "nearfar"
+  },
+  {
+    title: "Figure eights",
+    category: "Movement",
+    duration: 25,
+    desc: "Imagine a large figure-eight (∞) on its side about 10 feet in front of you. Slowly trace the shape with your eyes — no head movement. Reverse direction halfway.",
+    phase: "Trace the figure-8",
+    hint: "Smooth, slow movement — no jerking",
+    why: "Improves the flexibility and coordination of the six extraocular muscles that control eye movement.",
+    visual: "fig8"
+  },
+  {
+    title: "Up and down",
+    category: "Movement",
+    duration: 20,
+    desc: "Without moving your head, look as far up as you comfortably can, hold for 2 seconds, then look as far down as possible and hold. Repeat slowly.",
+    phase: "Up ↕ down",
+    hint: "Hold 2 seconds at each end",
+    why: "Stretches and strengthens the superior and inferior rectus muscles, which are often underused during screen-focused work.",
+    visual: "updown"
+  },
+  {
+    title: "Squeeze and open",
+    category: "Relaxation",
+    duration: 20,
+    desc: "Close your eyes gently, then squeeze them shut tightly for 3 seconds, then open them wide for 3 seconds. Feel the tension release on the open.",
+    phase: "Squeeze → open",
+    hint: "Tight squeeze, then full open",
+    why: "Activates and then releases the orbicularis oculi muscle, flushing out tension that builds around the eyes from sustained concentration.",
+    visual: "squeeze"
+  },
+  {
+    title: "Nose focus",
+    category: "Convergence",
+    duration: 20,
+    desc: "Cross your eyes slowly to focus on the tip of your nose. Hold for 3 seconds, then relax and let your eyes return to parallel. Repeat. If it feels straining, ease up.",
+    phase: "Focus → relax",
+    hint: "Cross gently, don't force it",
+    why: "Trains the medial rectus muscles responsible for convergence — essential for reading and close work without eye fatigue.",
+    visual: "nose"
+  }
+];
+
+let current = 0;
+let timeLeft = 0;
+let totalTime = 0;
+let timer = null;
+let running = false;
+
+function buildProgress() {
+  const strip = document.getElementById('progress-strip');
+  strip.innerHTML = '';
+  EXERCISES.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'progress-dot';
+    if (i < current) d.classList.add('done');
+    if (i === current) d.classList.add('active');
+    strip.appendChild(d);
+  });
+}
+
+function buildVisual(type) {
+  const guide = document.getElementById('visual-guide');
+  guide.innerHTML = '';
+  guide.style.minHeight = '90px';
+
+  if (type === 'palming') {
+    guide.innerHTML = `<div class="palming-visual"><div class="palm-hand"></div><div class="palm-hand"></div></div>`;
+  } else if (type === 'blinking') {
+    guide.innerHTML = `
+      <svg class="eye-svg blink-eye" viewBox="0 0 80 40" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="40" cy="20" rx="35" ry="16" fill="none" stroke="#7eb8d4" stroke-width="2"/>
+        <circle cx="40" cy="20" r="10" fill="rgba(126,184,212,0.18)" stroke="#7eb8d4" stroke-width="1.5"/>
+        <circle cx="40" cy="20" r="5" fill="#7eb8d4" opacity="0.7"/>
+      </svg>`;
+  } else if (type === 'nearfar') {
+    guide.innerHTML = `<div class="nearfar-dot"></div>`;
+  } else if (type === 'fig8') {
+    guide.innerHTML = `<div class="fig8-dot"></div>
+    <svg viewBox="0 0 120 60" width="120" height="60" style="opacity:0.18;position:absolute;">
+      <path d="M60,30 C60,15 80,5 90,15 C100,25 100,35 90,45 C80,55 60,45 60,30 C60,15 40,5 30,15 C20,25 20,35 30,45 C40,55 60,45 60,30Z" fill="none" stroke="#7eb8d4" stroke-width="1.5"/>
+    </svg>`;
+  } else if (type === 'updown') {
+    guide.innerHTML = `<div class="updown-dot"></div>
+    <div style="position:absolute;left:50%;top:15%;transform:translateX(-50%);font-size:11px;color:var(--dim);">↑</div>
+    <div style="position:absolute;left:50%;top:75%;transform:translateX(-50%);font-size:11px;color:var(--dim);">↓</div>`;
+  } else if (type === 'squeeze') {
+    guide.innerHTML = `
+      <svg class="eye-svg squeeze-eye" viewBox="0 0 80 40" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="40" cy="20" rx="35" ry="16" fill="none" stroke="#7eb8d4" stroke-width="2"/>
+        <circle cx="40" cy="20" r="10" fill="rgba(126,184,212,0.18)" stroke="#7eb8d4" stroke-width="1.5"/>
+        <circle cx="40" cy="20" r="5" fill="#7eb8d4" opacity="0.7"/>
+      </svg>`;
+  } else if (type === 'nose') {
+    guide.innerHTML = `<div class="nose-lines"><div class="nose-line"></div><div class="nose-line"></div></div>
+    <div style="position:absolute;right:calc(50% - 4px);bottom:18%;width:8px;height:8px;border-radius:50%;background:var(--accent);opacity:0.7;"></div>`;
+  }
+}
+
+function loadExercise(index) {
+  const ex = EXERCISES[index];
+  running = false;
+  clearInterval(timer);
+  timer = null;
+
+  document.getElementById('step-label').textContent = `Exercise ${index + 1} of ${EXERCISES.length}`;
+  document.getElementById('category-pill').textContent = ex.category;
+  document.getElementById('ex-title').textContent = ex.title;
+  document.getElementById('ex-desc').textContent = ex.desc;
+  document.getElementById('ring-num').textContent = ex.duration;
+  document.getElementById('timer-phase').textContent = 'Ready';
+  document.getElementById('timer-hint').textContent = 'Press Start when you\'re ready';
+  document.getElementById('why-text').textContent = ex.why;
+  document.getElementById('btn-start').textContent = 'Start';
+  document.getElementById('exercise-card').classList.remove('running');
+
+  totalTime = ex.duration;
+  timeLeft = ex.duration;
+  updateRing(ex.duration, ex.duration);
+  buildVisual(ex.visual);
+  buildProgress();
+}
+
+function updateRing(remaining, total) {
+  const circumference = 2 * Math.PI * 40; // r=40
+  const offset = circumference * (1 - remaining / total);
+  const fill = document.getElementById('ring-fill');
+  fill.style.strokeDashoffset = offset;
+  document.getElementById('ring-num').textContent = remaining;
+
+  // colour shift as time runs low
+  if (remaining <= 5) {
+    fill.style.stroke = '#d4a8a8';
+  } else {
+    fill.style.stroke = '#7eb8d4';
+  }
+}
+
+function toggleStart() {
+  if (running) {
+    // Pause
+    clearInterval(timer);
+    timer = null;
+    running = false;
+    document.getElementById('btn-start').textContent = 'Resume';
+    document.getElementById('timer-phase').textContent = 'Paused';
+    document.getElementById('exercise-card').classList.remove('running');
+  } else {
+    // Start / Resume
+    running = true;
+    document.getElementById('btn-start').textContent = 'Pause';
+    document.getElementById('exercise-card').classList.add('running');
+    const ex = EXERCISES[current];
+    document.getElementById('timer-phase').textContent = ex.phase;
+    document.getElementById('timer-hint').textContent = ex.hint;
+
+    timer = setInterval(() => {
+      timeLeft--;
+      updateRing(timeLeft, totalTime);
+      if (timeLeft >= 1 && timeLeft <= 25) playTick(timeLeft === 1);
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        timer = null;
+        running = false;
+        document.getElementById('timer-phase').textContent = 'Done ✓';
+        document.getElementById('timer-hint').textContent = 'Moving to next exercise…';
+        document.getElementById('btn-start').textContent = 'Start';
+        document.getElementById('exercise-card').classList.remove('running');
+        setTimeout(() => advanceExercise(), 1400);
+      }
+    }, 1000);
+  }
+}
+
+function skipExercise() {
+  clearInterval(timer);
+  timer = null;
+  running = false;
+  advanceExercise();
+}
+
+function advanceExercise() {
+  current++;
+  if (current >= EXERCISES.length) {
+    showDone();
+  } else {
+    loadExercise(current);
+  }
+}
+
+function showDone() {
+  document.getElementById('exercise-card').style.display = 'none';
+  document.getElementById('done-screen').style.display = 'block';
+  // mark all done
+  document.querySelectorAll('.progress-dot').forEach(d => {
+    d.classList.remove('active');
+    d.classList.add('done');
+  });
+}
+
+function restart() {
+  current = 0;
+  document.getElementById('exercise-card').style.display = 'block';
+  document.getElementById('done-screen').style.display = 'none';
+  loadExercise(0);
+}
+
+// ── Audio tick via Web Audio API ──
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playTick(isLast) {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(isLast ? 880 : 640, ctx.currentTime);
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.08);
+  } catch(e) {}
+}
+
+// Init
+loadExercise(0);
+</script>
+</body>
+</html>
