@@ -312,6 +312,23 @@
     50% { top: 75%; }
   }
 
+  /* left-right */
+  .leftright-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    animation: leftRight 1.6s ease-in-out infinite;
+  }
+
+  @keyframes leftRight {
+    0%, 100% { left: 15%; }
+    50% { left: 80%; }
+  }
+
   /* squeeze */
   .squeeze-eye {
     animation: squeezeAnim 2.2s ease-in-out infinite;
@@ -503,6 +520,7 @@
       <div class="timer-info">
         <div class="timer-phase" id="timer-phase">Ready</div>
         <div class="timer-hint" id="timer-hint">Press Start when you're ready</div>
+    <div id="volume-hint" style="font-size:11px;color:var(--muted);margin-top:6px;display:none;">🔊 Increase system volume to hear ticker sound</div>
       </div>
     </div>
 
@@ -585,6 +603,16 @@ const EXERCISES = [
     visual: "updown"
   },
   {
+    title: "Left and right",
+    category: "Movement",
+    duration: 20,
+    desc: "Without moving your head, look as far left as you comfortably can, hold for 2 seconds, then look as far right as possible and hold. Repeat slowly.",
+    phase: "Left ↔ right",
+    hint: "Hold 2 seconds at each end",
+    why: "Stretches and strengthens the medial and lateral rectus muscles, which control horizontal eye movement — often neglected during screen work.",
+    visual: "leftright"
+  },
+  {
     title: "Squeeze and open",
     category: "Relaxation",
     duration: 20,
@@ -645,6 +673,11 @@ function buildVisual(type) {
     <svg viewBox="0 0 120 60" width="120" height="60" style="opacity:0.18;position:absolute;">
       <path d="M60,30 C60,15 80,5 90,15 C100,25 100,35 90,45 C80,55 60,45 60,30 C60,15 40,5 30,15 C20,25 20,35 30,45 C40,55 60,45 60,30Z" fill="none" stroke="#7eb8d4" stroke-width="1.5"/>
     </svg>`;
+  } else if (type === 'leftright') {
+    guide.innerHTML = `<div style="position:absolute;left:50%;top:50%;width:80%;height:2px;background:rgba(126,184,212,0.12);transform:translate(-50%,-50%);border-radius:2px;"></div>
+    <div class="leftright-dot"></div>
+    <div style="position:absolute;left:12%;top:50%;transform:translateY(-50%);font-size:11px;color:var(--dim);">←</div>
+    <div style="position:absolute;right:12%;top:50%;transform:translateY(-50%);font-size:11px;color:var(--dim);">→</div>`;
   } else if (type === 'updown') {
     guide.innerHTML = `<div class="updown-dot"></div>
     <div style="position:absolute;left:50%;top:15%;transform:translateX(-50%);font-size:11px;color:var(--dim);">↑</div>
@@ -720,6 +753,7 @@ function toggleStart() {
     document.getElementById('timer-phase').textContent = ex.phase;
     document.getElementById('timer-hint').textContent = ex.hint;
     // Warm up AudioContext — wait for it to be running before starting timer
+    document.getElementById('volume-hint').style.display = 'block';
     const startTimer = () => {
       timer = setInterval(() => {
         timeLeft--;
